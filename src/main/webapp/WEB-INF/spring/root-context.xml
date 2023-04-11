@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+
+	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+		<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy" />
+		<property name="jdbcUrl" value="jdbc:log4jdbc:oracle:thin:@mymg_high?TNS_ADMIN=C:/opt/OracleCloudWallet/VFX" />
+		<property name="username" value="SCOTT" />
+		<property name="password" value="Oracle12345678" />
+		
+		<property name="maximumPoolSize" value="10" />
+		<property name="minimumIdle" value="2" />
+		<property name="idleTimeout" value="10000" /> 
+		<property name="connectionTimeout" value="2000" />
+		<property name="connectionTestQuery" value="SELECT * FROM dual" />
+		<property name="connectionInitSql" value="SELECT * FROM dual" />
+		<property name="dataSourceJNDI" value="jdbc/HikariCP" />
+		<property name="poolName" value="* HikariDataSource *" />
+	</bean>	
+
+	<!-- ref : 다른 빈을 사용(참조)하겠다.(여기서는 hikariConfig를 사용하겠다.)  -->
+	<bean id="hikariDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<constructor-arg ref="hikariConfig" /> 
+	</bean>
+		
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean" > 
+		<property name="dataSource" ref="hikariDataSource"  />
+		<!-- <property name="mapperLocations" value="classpath*:mappers/SQL*.xml" />  -->    <!-- xml 파일의 경로를 알려준다. (해당 설정은 하지 않는다, 이유: SQL 찾는 조건이 Spring 이 알아서 찾아야하는데 이것을 MyBatis가 대신 찾기 때문이다.) -->
+		<!-- <property name="configLocation" value="classpath:mybatis-config.xml" />  --> <!-- mybatis-config.xml 파일이 어디에 있는지 알려준다.-->
+	</bean>
+		
+	<!-- 아래 방식이 정석이다. -->
+	<mybatis-spring:scan base-package="org.zerock.myapp.mapper" /> 
+	<context:component-scan base-package="org.zerock.myapp.service" />
+</beans>
